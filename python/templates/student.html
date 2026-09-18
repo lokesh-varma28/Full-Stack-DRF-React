@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Student Details</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f3f4f6;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #111827;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #6b7280;
+        }
+
+        .value {
+            color: #111827;
+        }
+
+        .buttons {
+            margin-top: 25px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 11px 18px;
+            border-radius: 6px;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+
+        .back {
+            background: #374151;
+        }
+
+        .update {
+            background: #f59e0b;
+        }
+
+        .delete {
+            background: #dc2626;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <h1>Student Details</h1>
+
+    <div class="card">
+
+        <!-- Student ID -->
+        <div class="row">
+
+            <span class="label">
+                ID
+            </span>
+
+            <span class="value">
+                {{ student.id }}
+            </span>
+
+        </div>
+
+
+        <!-- Student Name -->
+        <div class="row">
+
+            <span class="label">
+                Name
+            </span>
+
+            <span class="value">
+                {{ student.name }}
+            </span>
+
+        </div>
+
+
+        <!-- Student Email -->
+        <div class="row">
+
+            <span class="label">
+                Email
+            </span>
+
+            <span class="value">
+                {{ student.email }}
+            </span>
+
+        </div>
+
+
+        <!-- Student Age -->
+        <div class="row">
+
+            <span class="label">
+                Age
+            </span>
+
+            <span class="value">
+                {{ student.age }}
+            </span>
+
+        </div>
+
+
+        <!-- Student Course -->
+        <div class="row">
+
+            <span class="label">
+                Course
+            </span>
+
+            <span class="value">
+                {{ student.course }}
+            </span>
+
+        </div>
+
+
+        <!-- Buttons -->
+        <div class="buttons">
+
+            <!-- Back -->
+            <a
+                href="/students/"
+                class="btn back"
+            >
+                Back
+            </a>
+
+
+            <!-- Update -->
+            <a
+                href="/students/update/{{ student.id }}/"
+                class="btn update"
+            >
+                Update
+            </a>
+
+
+            <!-- Delete -->
+            <a
+                href="/students/delete/{{ student.id }}/"
+                class="btn delete"
+            >
+                Delete
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

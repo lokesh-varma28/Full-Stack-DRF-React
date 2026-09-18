@@ -8,6 +8,7 @@ from pathlib import Path
 from datetime import timedelta
 import os
 
+import dj_database_url
 from dotenv import load_dotenv
 
 
@@ -29,39 +30,67 @@ load_dotenv(BASE_DIR / ".env")
 # SECURITY
 # ============================================================
 
+DEBUG = os.getenv(
+    "DEBUG",
+    "True",
+).strip().lower() in ("true", "1", "yes")
+
 SECRET_KEY = os.getenv(
     "SECRET_KEY",
     "django-insecure-development-only-change-this-key",
 )
 
-DEBUG = os.getenv(
-    "DEBUG",
-    "True",
-).lower() == "true"
-
-
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv(
-        "ALLOWED_HOSTS",
-        "127.0.0.1,localhost",
-    ).split(",")
-    if host.strip()
-]
+ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS", "")
+if ALLOWED_HOSTS_ENV.strip():
+    ALLOWED_HOSTS = [
+        host.strip()
+        for host in ALLOWED_HOSTS_ENV.split(",")
+        if host.strip()
+    ]
+elif DEBUG:
+    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+else:
+    ALLOWED_HOSTS = []
 
 
 # ============================================================
-# CORS
+# CORS & CSRF
 # ============================================================
 
-CORS_ALLOWED_ORIGINS = [
+DEFAULT_LOCAL_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+cors_env = os.getenv("CORS_ALLOWED_ORIGINS", "")
+if cors_env.strip():
+    configured_cors = [
+        origin.strip()
+        for origin in cors_env.split(",")
+        if origin.strip()
+    ]
+    if DEBUG:
+        CORS_ALLOWED_ORIGINS = list(dict.fromkeys(configured_cors + DEFAULT_LOCAL_ORIGINS))
+    else:
+        CORS_ALLOWED_ORIGINS = configured_cors
+else:
+    CORS_ALLOWED_ORIGINS = list(DEFAULT_LOCAL_ORIGINS)
+
+csrf_env = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+if csrf_env.strip():
+    configured_csrf = [
+        origin.strip()
+        for origin in csrf_env.split(",")
+        if origin.strip()
+    ]
+    if DEBUG:
+        CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(configured_csrf + DEFAULT_LOCAL_ORIGINS))
+    else:
+        CSRF_TRUSTED_ORIGINS = configured_csrf
+else:
+    CSRF_TRUSTED_ORIGINS = list(DEFAULT_LOCAL_ORIGINS)
 
 
 # ============================================================
@@ -83,7 +112,6 @@ INSTALLED_APPS = [
     # --------------------------------------------------------
 
     "cloudinary",
-    "cloudinary_storage",
 
     # --------------------------------------------------------
     # JWT Token Blacklist
@@ -117,6 +145,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
 
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 
     # CORS should be before CommonMiddleware
     "corsheaders.middleware.CorsMiddleware",
@@ -183,15 +212,23 @@ WSGI_APPLICATION = "Python.wsgi.application"
 # DATABASE
 # ============================================================
 
-DATABASES = {
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
-    "default": {
-
-        "ENGINE": "django.db.backends.sqlite3",
-
-        "NAME": BASE_DIR / "db.sqlite3",
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # ============================================================
@@ -377,6 +414,20 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 
 # ============================================================
+# STORAGES (DJANGO 6.1)
+# ============================================================
+
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+
+# ============================================================
 # EMAIL CONFIGURATION
 # ============================================================
 
@@ -513,6 +564,9 @@ SECURE_BROWSER_XSS_FILTER = True
 
 X_FRAME_OPTIONS = "DENY"
 
+# Render reverse proxy HTTPS detection (prevents infinite redirect loops)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 
 # ============================================================
 # PRODUCTION HTTPS SETTINGS
@@ -520,13 +574,16 @@ X_FRAME_OPTIONS = "DENY"
 
 if not DEBUG:
 
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = os.getenv(
+        "SECURE_SSL_REDIRECT",
+        "True",
+    ).strip().lower() in ("true", "1", "yes")
 
     SESSION_COOKIE_SECURE = True
 
     CSRF_COOKIE_SECURE = True
 
-    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000"))
 
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 

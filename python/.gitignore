@@ -2,6 +2,8 @@
 venv/
 .venv/
 
+production_data.json
+
 # Environment variables
 .env
 

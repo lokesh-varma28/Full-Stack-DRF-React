@@ -142,6 +142,7 @@ if parsed_hosts:
 elif DEBUG:
     ALLOWED_HOSTS = [
         "127.0.0.1",
+        "full-stack-drf-react.onrender.com",
         "localhost",
     ]
 

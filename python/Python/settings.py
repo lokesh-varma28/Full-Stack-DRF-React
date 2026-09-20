@@ -2,6 +2,7 @@
 Django settings for Python project.
 
 Production-ready configuration for:
+
 - Django REST Framework
 - PostgreSQL / SQLite
 - JWT authentication
@@ -36,6 +37,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 #
 # Render:
 # Environment variables are supplied directly by Render.
+
 load_dotenv(BASE_DIR / ".env")
 
 
@@ -50,7 +52,6 @@ def _parse_list(value: str) -> list[str]:
     Example:
         "example.com,api.example.com"
     """
-
     if not value:
         return []
 
@@ -74,12 +75,11 @@ def _parse_list(value: str) -> list[str]:
 
 def _parse_origins(value: str) -> list[str]:
     """
-    Parse CORS/CSRF origins.
+    Parse CORS / CSRF origins.
 
     Example:
-        "http://localhost:5173,https://apexstore.vercel.app"
+        "http://localhost:5173,https://apexstore-frontend.vercel.app"
     """
-
     if not value:
         return []
 
@@ -113,15 +113,16 @@ DEBUG = (
 )
 
 
-# IMPORTANT:
-# Never use a known/insecure secret key in production.
+# ============================================================
+# SECRET KEY
+# ============================================================
+
 SECRET_KEY = os.getenv("SECRET_KEY", "").strip()
 
 if not SECRET_KEY:
     if DEBUG:
         # Development-only fallback.
         SECRET_KEY = "django-insecure-local-development-only-key"
-
     else:
         raise RuntimeError(
             "SECRET_KEY environment variable is required when DEBUG=False."
@@ -142,8 +143,8 @@ if parsed_hosts:
 elif DEBUG:
     ALLOWED_HOSTS = [
         "127.0.0.1",
-        "full-stack-drf-react.onrender.com",
         "localhost",
+        "full-stack-drf-react.onrender.com",
     ]
 
 else:
@@ -207,7 +208,6 @@ else:
 # ============================================================
 
 INSTALLED_APPS = [
-
     # --------------------------------------------------------
     # Third Party
     # --------------------------------------------------------
@@ -252,7 +252,6 @@ INSTALLED_APPS = [
 # ============================================================
 
 MIDDLEWARE = [
-
     "django.middleware.security.SecurityMiddleware",
 
     # CORS must run before CommonMiddleware.
@@ -262,15 +261,10 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
     "django.contrib.sessions.middleware.SessionMiddleware",
-
     "django.middleware.common.CommonMiddleware",
-
     "django.middleware.csrf.CsrfViewMiddleware",
-
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-
     "django.contrib.messages.middleware.MessageMiddleware",
-
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -289,13 +283,10 @@ ROOT_URLCONF = "Python.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-
         "DIRS": [
             BASE_DIR / "templates",
         ],
-
         "APP_DIRS": True,
-
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
@@ -320,21 +311,24 @@ WSGI_APPLICATION = "Python.wsgi.application"
 
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
-
 if DATABASE_URL:
+    # --------------------------------------------------------
+    # Production / Render PostgreSQL
+    # --------------------------------------------------------
 
-    # Render PostgreSQL / production database
     DATABASES = {
-        "default": dj_database_url.config(
-            default=DATABASE_URL,
+        "default": dj_database_url.parse(
+            DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
         )
     }
 
 else:
+    # --------------------------------------------------------
+    # Local development / SQLite fallback
+    # --------------------------------------------------------
 
-    # Local development database
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -348,7 +342,6 @@ else:
 # ============================================================
 
 REST_FRAMEWORK = {
-
     # --------------------------------------------------------
     # Authentication
     # --------------------------------------------------------
@@ -409,7 +402,6 @@ REST_FRAMEWORK = {
 # ============================================================
 
 SIMPLE_JWT = {
-
     # --------------------------------------------------------
     # Access Token
     # --------------------------------------------------------
@@ -431,7 +423,6 @@ SIMPLE_JWT = {
     # --------------------------------------------------------
 
     "ROTATE_REFRESH_TOKENS": True,
-
     "BLACKLIST_AFTER_ROTATION": True,
 
     # --------------------------------------------------------
@@ -455,29 +446,29 @@ SIMPLE_JWT = {
 # ============================================================
 
 AUTH_PASSWORD_VALIDATORS = [
-
     {
-        "NAME":
+        "NAME": (
             "django.contrib.auth.password_validation."
-            "UserAttributeSimilarityValidator",
+            "UserAttributeSimilarityValidator"
+        ),
     },
-
     {
-        "NAME":
+        "NAME": (
             "django.contrib.auth.password_validation."
-            "MinimumLengthValidator",
+            "MinimumLengthValidator"
+        ),
     },
-
     {
-        "NAME":
+        "NAME": (
             "django.contrib.auth.password_validation."
-            "CommonPasswordValidator",
+            "CommonPasswordValidator"
+        ),
     },
-
     {
-        "NAME":
+        "NAME": (
             "django.contrib.auth.password_validation."
-            "NumericPasswordValidator",
+            "NumericPasswordValidator"
+        ),
     },
 ]
 
@@ -499,7 +490,7 @@ USE_TZ = True
 # STATIC FILES
 # ============================================================
 
-STATIC_URL = "/static/"
+STATIC_URL = "/"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
@@ -509,6 +500,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # ============================================================
 
 # Product images are stored using Cloudinary.
+
 MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
@@ -519,14 +511,14 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ============================================================
 
 STORAGES = {
-
     # --------------------------------------------------------
     # User-uploaded media
     # --------------------------------------------------------
 
     "default": {
-        "BACKEND":
-            "cloudinary_storage.storage.MediaCloudinaryStorage",
+        "BACKEND": (
+            "cloudinary_storage.storage.MediaCloudinaryStorage"
+        ),
     },
 
     # --------------------------------------------------------
@@ -534,8 +526,9 @@ STORAGES = {
     # --------------------------------------------------------
 
     "staticfiles": {
-        "BACKEND":
-            "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": (
+            "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
     },
 }
 
@@ -662,7 +655,10 @@ if not DEBUG:
 
     CSRF_COOKIE_SECURE = True
 
+    # --------------------------------------------------------
     # HSTS
+    # --------------------------------------------------------
+
     SECURE_HSTS_SECONDS = int(
         os.getenv(
             "SECURE_HSTS_SECONDS",
@@ -692,7 +688,10 @@ if not DEBUG:
 
 else:
 
-    # Explicit development values.
+    # --------------------------------------------------------
+    # Development values
+    # --------------------------------------------------------
+
     SECURE_SSL_REDIRECT = False
 
     SESSION_COOKIE_SECURE = False
@@ -707,3 +706,4 @@ else:
 DEFAULT_AUTO_FIELD = (
     "django.db.models.BigAutoField"
 )
+

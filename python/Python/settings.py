@@ -40,17 +40,28 @@ SECRET_KEY = os.getenv(
     "django-insecure-development-only-change-this-key",
 )
 
-ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS", "")
-if ALLOWED_HOSTS_ENV.strip():
+
+# ============================================================
+# ALLOWED HOSTS
+# ============================================================
+
+ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS", "").strip()
+
+if ALLOWED_HOSTS_ENV:
     ALLOWED_HOSTS = [
         host.strip()
         for host in ALLOWED_HOSTS_ENV.split(",")
         if host.strip()
     ]
 elif DEBUG:
-    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+    ALLOWED_HOSTS = [
+        "127.0.0.1",
+        "localhost",
+    ]
 else:
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = [
+        "full-stack-ecommerce-drf-react-typescript.onrender.com",
+    ]
 
 
 # ============================================================
@@ -64,33 +75,71 @@ DEFAULT_LOCAL_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 
-cors_env = os.getenv("CORS_ALLOWED_ORIGINS", "")
-if cors_env.strip():
-    configured_cors = [
-        origin.strip()
-        for origin in cors_env.split(",")
-        if origin.strip()
-    ]
-    if DEBUG:
-        CORS_ALLOWED_ORIGINS = list(dict.fromkeys(configured_cors + DEFAULT_LOCAL_ORIGINS))
-    else:
-        CORS_ALLOWED_ORIGINS = configured_cors
-else:
-    CORS_ALLOWED_ORIGINS = list(DEFAULT_LOCAL_ORIGINS)
+DEFAULT_PRODUCTION_ORIGINS = [
+    "https://full-stack-ecommerce-drf-react-typescript-o46aubgds.vercel.app",
+]
 
-csrf_env = os.getenv("CSRF_TRUSTED_ORIGINS", "")
-if csrf_env.strip():
-    configured_csrf = [
-        origin.strip()
-        for origin in csrf_env.split(",")
-        if origin.strip()
-    ]
-    if DEBUG:
-        CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(configured_csrf + DEFAULT_LOCAL_ORIGINS))
-    else:
-        CSRF_TRUSTED_ORIGINS = configured_csrf
+
+# ------------------------------------------------------------
+# CORS_ALLOWED_ORIGINS
+# ------------------------------------------------------------
+
+cors_env = os.getenv(
+    "CORS_ALLOWED_ORIGINS",
+    "",
+).strip()
+
+configured_cors = [
+    origin.strip().rstrip("/")
+    for origin in cors_env.split(",")
+    if origin.strip()
+]
+
+if DEBUG:
+    CORS_ALLOWED_ORIGINS = list(
+        dict.fromkeys(
+            configured_cors
+            + DEFAULT_LOCAL_ORIGINS
+        )
+    )
 else:
-    CSRF_TRUSTED_ORIGINS = list(DEFAULT_LOCAL_ORIGINS)
+    CORS_ALLOWED_ORIGINS = list(
+        dict.fromkeys(
+            configured_cors
+            + DEFAULT_PRODUCTION_ORIGINS
+        )
+    )
+
+
+# ------------------------------------------------------------
+# CSRF_TRUSTED_ORIGINS
+# ------------------------------------------------------------
+
+csrf_env = os.getenv(
+    "CSRF_TRUSTED_ORIGINS",
+    "",
+).strip()
+
+configured_csrf = [
+    origin.strip().rstrip("/")
+    for origin in csrf_env.split(",")
+    if origin.strip()
+]
+
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS = list(
+        dict.fromkeys(
+            configured_csrf
+            + DEFAULT_LOCAL_ORIGINS
+        )
+    )
+else:
+    CSRF_TRUSTED_ORIGINS = list(
+        dict.fromkeys(
+            configured_csrf
+            + DEFAULT_PRODUCTION_ORIGINS
+        )
+    )
 
 
 # ============================================================
@@ -145,9 +194,10 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
 
     "django.middleware.security.SecurityMiddleware",
+
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
-    # CORS should be before CommonMiddleware
+    # CORS must run before CommonMiddleware
     "corsheaders.middleware.CorsMiddleware",
 
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -176,7 +226,6 @@ ROOT_URLCONF = "Python.urls"
 # ============================================================
 
 TEMPLATES = [
-
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
 
@@ -187,13 +236,9 @@ TEMPLATES = [
         "APP_DIRS": True,
 
         "OPTIONS": {
-
             "context_processors": [
-
                 "django.template.context_processors.request",
-
                 "django.contrib.auth.context_processors.auth",
-
                 "django.contrib.messages.context_processors.messages",
             ],
         },
@@ -212,9 +257,13 @@ WSGI_APPLICATION = "Python.wsgi.application"
 # DATABASE
 # ============================================================
 
-DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "",
+).strip()
 
 if DATABASE_URL:
+
     DATABASES = {
         "default": dj_database_url.config(
             default=DATABASE_URL,
@@ -222,7 +271,9 @@ if DATABASE_URL:
             conn_health_checks=True,
         )
     }
+
 else:
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -271,20 +322,10 @@ REST_FRAMEWORK = {
     ],
 
     "DEFAULT_THROTTLE_RATES": {
-
-        # Anonymous users
         "anon": "10/minute",
-
-        # Authenticated users
         "user": "20/minute",
-
-        # Product APIs
         "product": "100/hour",
-
-        # Cart APIs
         "cart": "50/hour",
-
-        # Payment APIs
         "payment": "10/minute",
     },
 
@@ -327,10 +368,6 @@ SIMPLE_JWT = {
     # --------------------------------------------------------
 
     "ROTATE_REFRESH_TOKENS": True,
-
-    # --------------------------------------------------------
-    # Blacklist Old Refresh Token
-    # --------------------------------------------------------
 
     "BLACKLIST_AFTER_ROTATION": True,
 
@@ -418,11 +455,15 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ============================================================
 
 STORAGES = {
+
     "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        "BACKEND":
+            "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
+
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        "BACKEND":
+            "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
 
@@ -470,11 +511,13 @@ DEFAULT_FROM_EMAIL = os.getenv(
 # ============================================================
 
 if not EMAIL_HOST_USER:
+
     print(
         "WARNING: EMAIL_HOST_USER is not configured."
     )
 
 if not EMAIL_HOST_PASSWORD:
+
     print(
         "WARNING: EMAIL_HOST_PASSWORD is not configured."
     )
@@ -484,9 +527,15 @@ if not EMAIL_HOST_PASSWORD:
 # RAZORPAY
 # ============================================================
 
-RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "").strip()
+RAZORPAY_KEY_ID = os.getenv(
+    "RAZORPAY_KEY_ID",
+    "",
+).strip()
 
-RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "").strip()
+RAZORPAY_KEY_SECRET = os.getenv(
+    "RAZORPAY_KEY_SECRET",
+    "",
+).strip()
 
 
 # ============================================================
@@ -494,11 +543,13 @@ RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "").strip()
 # ============================================================
 
 if not RAZORPAY_KEY_ID:
+
     print(
         "WARNING: RAZORPAY_KEY_ID is not configured."
     )
 
 if not RAZORPAY_KEY_SECRET:
+
     print(
         "WARNING: RAZORPAY_KEY_SECRET is not configured."
     )
@@ -511,26 +562,29 @@ if not RAZORPAY_KEY_SECRET:
 CLOUDINARY_CLOUD_NAME = os.getenv(
     "CLOUDINARY_CLOUD_NAME",
     "",
-)
+).strip()
 
 CLOUDINARY_API_KEY = os.getenv(
     "CLOUDINARY_API_KEY",
     "",
-)
+).strip()
 
 CLOUDINARY_API_SECRET = os.getenv(
     "CLOUDINARY_API_SECRET",
     "",
-)
+).strip()
 
 
 CLOUDINARY_STORAGE = {
 
-    "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
+    "CLOUD_NAME":
+        CLOUDINARY_CLOUD_NAME,
 
-    "API_KEY": CLOUDINARY_API_KEY,
+    "API_KEY":
+        CLOUDINARY_API_KEY,
 
-    "API_SECRET": CLOUDINARY_API_SECRET,
+    "API_SECRET":
+        CLOUDINARY_API_SECRET,
 }
 
 
@@ -539,16 +593,19 @@ CLOUDINARY_STORAGE = {
 # ============================================================
 
 if not CLOUDINARY_CLOUD_NAME:
+
     print(
         "WARNING: CLOUDINARY_CLOUD_NAME is not configured."
     )
 
 if not CLOUDINARY_API_KEY:
+
     print(
         "WARNING: CLOUDINARY_API_KEY is not configured."
     )
 
 if not CLOUDINARY_API_SECRET:
+
     print(
         "WARNING: CLOUDINARY_API_SECRET is not configured."
     )
@@ -564,8 +621,15 @@ SECURE_BROWSER_XSS_FILTER = True
 
 X_FRAME_OPTIONS = "DENY"
 
-# Render reverse proxy HTTPS detection (prevents infinite redirect loops)
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# ------------------------------------------------------------
+# Render reverse proxy HTTPS detection
+# ------------------------------------------------------------
+
+SECURE_PROXY_SSL_HEADER = (
+    "HTTP_X_FORWARDED_PROTO",
+    "https",
+)
 
 
 # ============================================================
@@ -577,13 +641,22 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = os.getenv(
         "SECURE_SSL_REDIRECT",
         "True",
-    ).strip().lower() in ("true", "1", "yes")
+    ).strip().lower() in (
+        "true",
+        "1",
+        "yes",
+    )
 
     SESSION_COOKIE_SECURE = True
 
     CSRF_COOKIE_SECURE = True
 
-    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000"))
+    SECURE_HSTS_SECONDS = int(
+        os.getenv(
+            "SECURE_HSTS_SECONDS",
+            "31536000",
+        )
+    )
 
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 

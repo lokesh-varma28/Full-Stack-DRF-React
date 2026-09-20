@@ -42,60 +42,76 @@ SECRET_KEY = os.getenv(
 
 
 # ============================================================
+# HELPER FUNCTIONS FOR ENVIRONMENT PARSING
+# ============================================================
+
+def _parse_list(value: str) -> list[str]:
+    """Parse comma- or newline-separated items, trimming whitespace and removing empty items."""
+    if not value:
+        return []
+    normalized = value.replace("\r\n", "\n").replace("\r", "\n").replace("\n", ",")
+    items: list[str] = []
+    for item in normalized.split(","):
+        cleaned = item.strip()
+        if cleaned and cleaned not in items:
+            items.append(cleaned)
+    return items
+
+
+def _parse_origins(value: str) -> list[str]:
+    """Parse comma- or newline-separated origins, stripping whitespace and trailing slashes."""
+    if not value:
+        return []
+    normalized = value.replace("\r\n", "\n").replace("\r", "\n").replace("\n", ",")
+    origins: list[str] = []
+    for item in normalized.split(","):
+        cleaned = item.strip().rstrip("/")
+        if cleaned and cleaned not in origins:
+            origins.append(cleaned)
+    return origins
+
+
+# ============================================================
 # ALLOWED HOSTS
 # ============================================================
 
 ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS", "").strip()
+parsed_hosts = _parse_list(ALLOWED_HOSTS_ENV)
 
-if ALLOWED_HOSTS_ENV:
-    ALLOWED_HOSTS = [
-        host.strip()
-        for host in ALLOWED_HOSTS_ENV.split(",")
-        if host.strip()
-    ]
+if parsed_hosts:
+    ALLOWED_HOSTS = parsed_hosts
 elif DEBUG:
     ALLOWED_HOSTS = [
         "127.0.0.1",
         "localhost",
     ]
 else:
-    ALLOWED_HOSTS = [
-        "full-stack-ecommerce-drf-react-typescript.onrender.com",
-    ]
+    ALLOWED_HOSTS = []
 
 
 # ============================================================
 # CORS & CSRF
 # ============================================================
 
+# Explicit local development origins for Vite and standard frontend dev ports
 DEFAULT_LOCAL_ORIGINS = [
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
 
-DEFAULT_PRODUCTION_ORIGINS = [
-    "https://full-stack-ecommerce-drf-react-typescript-o46aubgds.vercel.app",
-]
-
-
 # ------------------------------------------------------------
 # CORS_ALLOWED_ORIGINS
 # ------------------------------------------------------------
 
-cors_env = os.getenv(
-    "CORS_ALLOWED_ORIGINS",
-    "",
-).strip()
-
-configured_cors = [
-    origin.strip().rstrip("/")
-    for origin in cors_env.split(",")
-    if origin.strip()
-]
+cors_env = os.getenv("CORS_ALLOWED_ORIGINS", "").strip()
+configured_cors = _parse_origins(cors_env)
 
 if DEBUG:
+    # In local development, include local ports plus any custom configured origins
     CORS_ALLOWED_ORIGINS = list(
         dict.fromkeys(
             configured_cors
@@ -103,30 +119,19 @@ if DEBUG:
         )
     )
 else:
-    CORS_ALLOWED_ORIGINS = list(
-        dict.fromkeys(
-            configured_cors
-            + DEFAULT_PRODUCTION_ORIGINS
-        )
-    )
+    # In production, strictly use configured origins from environment variables
+    CORS_ALLOWED_ORIGINS = configured_cors
 
 
 # ------------------------------------------------------------
 # CSRF_TRUSTED_ORIGINS
 # ------------------------------------------------------------
 
-csrf_env = os.getenv(
-    "CSRF_TRUSTED_ORIGINS",
-    "",
-).strip()
-
-configured_csrf = [
-    origin.strip().rstrip("/")
-    for origin in csrf_env.split(",")
-    if origin.strip()
-]
+csrf_env = os.getenv("CSRF_TRUSTED_ORIGINS", "").strip()
+configured_csrf = _parse_origins(csrf_env)
 
 if DEBUG:
+    # In local development, include local ports plus any custom configured origins
     CSRF_TRUSTED_ORIGINS = list(
         dict.fromkeys(
             configured_csrf
@@ -134,12 +139,10 @@ if DEBUG:
         )
     )
 else:
-    CSRF_TRUSTED_ORIGINS = list(
-        dict.fromkeys(
-            configured_csrf
-            + DEFAULT_PRODUCTION_ORIGINS
-        )
-    )
+    # In production, strictly use configured origins from environment variables
+    CSRF_TRUSTED_ORIGINS = configured_csrf
+
+
 
 
 # ============================================================
@@ -195,10 +198,10 @@ MIDDLEWARE = [
 
     "django.middleware.security.SecurityMiddleware",
 
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-
-    # CORS must run before CommonMiddleware
+    # CORS must run immediately after SecurityMiddleware and before CommonMiddleware
     "corsheaders.middleware.CorsMiddleware",
+
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 
     "django.contrib.sessions.middleware.SessionMiddleware",
 

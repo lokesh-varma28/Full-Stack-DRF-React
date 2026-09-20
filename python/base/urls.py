@@ -52,6 +52,8 @@ from base.views import (
     MyOrdersView,
     OrderDetailView,
     CancelOrderView,
+    AdminOrderListView,
+    AdminOrderDetailView,
 
     # ========================================================
     # WISHLIST
@@ -320,6 +322,26 @@ urlpatterns = [
         "orders/",
         MyOrdersView.as_view(),
         name="my-orders",
+    ),
+
+    # --------------------------------------------------------
+    # GET -> Admin list all customer orders
+    # --------------------------------------------------------
+
+    path(
+        "orders/admin/",
+        AdminOrderListView.as_view(),
+        name="admin-orders-list",
+    ),
+
+    # --------------------------------------------------------
+    # GET, PATCH -> Admin order detail & status update
+    # --------------------------------------------------------
+
+    path(
+        "orders/admin/<int:pk>/",
+        AdminOrderDetailView.as_view(),
+        name="admin-order-detail",
     ),
 
     # --------------------------------------------------------

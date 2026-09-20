@@ -43,6 +43,7 @@ from base.serializers import (
     CartItemSerializer,
     PaymentVerifySerializer,
     OrderSerializer,
+    AdminOrderSerializer,
     WishlistSerializer,
     AddressSerializer,
     CategorySerializer,
@@ -2747,6 +2748,161 @@ class CancelOrderView(
                 order
             ).data,
             message="Order cancelled successfully",
+        )
+
+
+# ============================================================
+# ADMIN ORDERS - LIST
+# ============================================================
+
+class AdminOrderListView(
+    generics.ListAPIView
+):
+    serializer_class = AdminOrderSerializer
+
+    permission_classes = [
+        IsAuthenticated,
+        IsStaffUser,
+    ]
+
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter,
+        OrderingFilter,
+    ]
+
+    search_fields = [
+        "id",
+        "user__username",
+        "user__email",
+        "delivery_full_name",
+        "delivery_phone",
+        "delivery_city",
+        "razorpay_order_id",
+    ]
+
+    ordering_fields = [
+        "created_at",
+        "total_amount",
+        "status",
+        "id",
+    ]
+
+    ordering = [
+        "-created_at"
+    ]
+
+    def get_queryset(self):
+        queryset = (
+            Order.objects
+            .select_related("user", "payment")
+            .prefetch_related("items__product")
+            .all()
+        )
+
+        status_param = self.request.query_params.get("status")
+        if status_param and status_param.strip():
+            queryset = queryset.filter(status=status_param.strip().lower())
+
+        payment_status = self.request.query_params.get("payment_status")
+        if payment_status and payment_status.strip():
+            queryset = queryset.filter(payment__status=payment_status.strip().lower())
+
+        return queryset
+
+    def list(
+        self,
+        request,
+        *args,
+        **kwargs
+    ):
+        queryset = self.filter_queryset(
+            self.get_queryset()
+        )
+
+        serializer = self.get_serializer(
+            queryset,
+            many=True
+        )
+
+        return api_response(
+            data=serializer.data,
+            message="Admin orders fetched successfully",
+        )
+
+
+# ============================================================
+# ADMIN ORDER - DETAIL & STATUS UPDATE
+# ============================================================
+
+class AdminOrderDetailView(
+    generics.RetrieveUpdateAPIView
+):
+    serializer_class = AdminOrderSerializer
+
+    permission_classes = [
+        IsAuthenticated,
+        IsStaffUser,
+    ]
+
+    def get_queryset(self):
+        return (
+            Order.objects
+            .select_related("user", "payment")
+            .prefetch_related("items__product")
+            .all()
+        )
+
+    def retrieve(
+        self,
+        request,
+        *args,
+        **kwargs
+    ):
+        order = self.get_object()
+
+        serializer = self.get_serializer(
+            order
+        )
+
+        return api_response(
+            data=serializer.data,
+            message="Admin order details fetched successfully",
+        )
+
+    def update(
+        self,
+        request,
+        *args,
+        **kwargs
+    ):
+        order = self.get_object()
+
+        new_status = request.data.get("status")
+        if new_status:
+            valid_statuses = [choice[0] for choice in Order.STATUS_CHOICES]
+            if new_status not in valid_statuses:
+                return api_response(
+                    message=f"Invalid status '{new_status}'. Allowed choices: {', '.join(valid_statuses)}",
+                    success=False,
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                )
+            order.status = new_status
+            order.save(
+                update_fields=[
+                    "status",
+                    "updated_at",
+                ]
+            )
+
+        serializer = self.get_serializer(
+            order
+        )
+
+        return api_response(
+            data=serializer.data,
+            message="Order updated successfully",
+            status_code=status.HTTP_200_OK,
         )
 
 

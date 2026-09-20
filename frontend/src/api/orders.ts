@@ -1,9 +1,12 @@
 import { apiClient } from './client';
 import {
+  AdminOrder,
+  AdminOrderFilterParams,
   BuyNowRequest,
   CheckoutResponseData,
   CreateOrderRequest,
   Order,
+  OrderStatus,
   VerifyPaymentRequest,
 } from '../types/order';
 import { ApiResponse } from '../types/api';
@@ -42,6 +45,24 @@ export const ordersApi = {
   // POST /orders/:id/cancel/ - Cancel created order
   cancelOrder: async (id: number): Promise<ApiResponse<Order>> => {
     const res = await apiClient.post<ApiResponse<Order>>(`/orders/${id}/cancel/`);
+    return res.data;
+  },
+
+  // GET /orders/admin/ - Admin list all customer orders
+  getAdminOrders: async (params?: AdminOrderFilterParams): Promise<ApiResponse<AdminOrder[]>> => {
+    const res = await apiClient.get<ApiResponse<AdminOrder[]>>('/orders/admin/', { params });
+    return res.data;
+  },
+
+  // GET /orders/admin/:id/ - Admin single order detail
+  getAdminOrder: async (id: number): Promise<ApiResponse<AdminOrder>> => {
+    const res = await apiClient.get<ApiResponse<AdminOrder>>(`/orders/admin/${id}/`);
+    return res.data;
+  },
+
+  // PATCH /orders/admin/:id/ - Admin update order status
+  updateAdminOrderStatus: async (id: number, status: OrderStatus): Promise<ApiResponse<AdminOrder>> => {
+    const res = await apiClient.patch<ApiResponse<AdminOrder>>(`/orders/admin/${id}/`, { status });
     return res.data;
   },
 };

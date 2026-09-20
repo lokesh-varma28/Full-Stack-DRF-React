@@ -15,6 +15,11 @@ export function getImageUrl(url: string | null | undefined): string {
     return PRODUCT_FALLBACK_IMAGE;
   }
 
+  // Upgrade insecure Cloudinary URLs to HTTPS
+  if (trimmed.startsWith('http://res.cloudinary.com/')) {
+    return trimmed.replace('http://res.cloudinary.com/', 'https://res.cloudinary.com/');
+  }
+
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
     return trimmed;
   }

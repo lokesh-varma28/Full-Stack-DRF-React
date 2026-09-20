@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { PackageCheck, ArrowRight, XCircle } from 'lucide-react';
 import { useOrders } from '../hooks/useOrders';
 import { OrderStatusBadge } from '../components/orders/OrderStatusBadge';
+import { OrderItemThumbnail } from '../components/orders/OrderItemThumbnail';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { toast } from '../stores/useToastStore';
 
@@ -77,13 +78,16 @@ export const OrdersPage: React.FC = () => {
               </div>
 
               {/* Items preview */}
-              <div className="space-y-1 text-xs">
+              <div className="space-y-2 text-xs">
                 {order.items?.map((item) => (
-                  <div key={item.id} className="flex justify-between text-[#A7ADB7]">
-                    <span>
-                      {item.product ? item.product.name : 'Product'} x {item.quantity}
-                    </span>
-                    <span className="font-medium text-[#F5F7FA]">{formatCurrency(item.price)}</span>
+                  <div key={item.id} className="flex items-center justify-between gap-3 text-[#A7ADB7]">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <OrderItemThumbnail product={item.product} className="w-10 h-10" />
+                      <span className="truncate">
+                        {item.product ? item.product.name : 'Product'} x {item.quantity}
+                      </span>
+                    </div>
+                    <span className="font-medium text-[#F5F7FA] shrink-0">{formatCurrency(item.price)}</span>
                   </div>
                 ))}
               </div>

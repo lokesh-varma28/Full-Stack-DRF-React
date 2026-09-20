@@ -8,7 +8,12 @@ class CloudinaryImageField(serializers.FileField):
         if not value:
             return None
         try:
-            return value.url
+            if hasattr(value, "build_url"):
+                return value.build_url(secure=True)
+            url = value.url
+            if url and url.startswith("http://res.cloudinary.com/"):
+                return url.replace("http://res.cloudinary.com/", "https://res.cloudinary.com/", 1)
+            return url
         except Exception:
             return str(value)
 

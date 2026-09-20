@@ -15,7 +15,7 @@ import {
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { useProducts } from '../../hooks/useProducts';
 import { useCategories } from '../../hooks/useCategories';
-import { useOrders } from '../../hooks/useOrders';
+import { useAdminOrders } from '../../hooks/useAdminOrders';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { getImageUrl } from '../../utils/imageUtils';
 import { PRODUCT_FALLBACK_IMAGE } from '../../utils/constants';
@@ -23,7 +23,7 @@ import { PRODUCT_FALLBACK_IMAGE } from '../../utils/constants';
 export const AdminDashboardPage: React.FC = () => {
   const { products, count: productCount, isLoading: productsLoading } = useProducts({ size: 100 });
   const { categories, isLoading: categoriesLoading } = useCategories();
-  const { orders, isLoading: ordersLoading } = useOrders();
+  const { orders, isLoading: ordersLoading } = useAdminOrders();
 
   const activeProductsCount = products.filter((p) => p.is_active).length;
   const lowStockProducts = products.filter((p) => p.stock <= 5);
@@ -124,20 +124,25 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
 
           {/* Total Orders */}
-          <div className="p-4 bg-[#111418] border border-[#252A31] rounded-xl hover:border-[#3B424E] transition-colors">
+          <Link
+            to="/admin/orders"
+            className="p-4 bg-[#111418] border border-[#252A31] rounded-xl hover:border-sky-500/50 transition-colors group block"
+          >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-[#A7ADB7] uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-[#A7ADB7] group-hover:text-[#F5F7FA] uppercase tracking-wider transition-colors">
                 Store Orders
               </span>
-              <div className="w-7 h-7 bg-[#171B20] text-sky-400 rounded-lg flex items-center justify-center border border-[#252A31]">
+              <div className="w-7 h-7 bg-[#171B20] text-sky-400 group-hover:bg-sky-500/10 rounded-lg flex items-center justify-center border border-[#252A31] transition-colors">
                 <ShoppingBag className="w-3.5 h-3.5" />
               </div>
             </div>
             <div className="mt-2 flex items-baseline justify-between">
               <span className="text-2xl font-bold text-[#F5F7FA]">{orders.length}</span>
-              <span className="text-[11px] text-[#747B87]">recorded</span>
+              <span className="text-[11px] text-sky-400 group-hover:underline flex items-center gap-0.5">
+                Manage <ArrowRight className="w-3 h-3" />
+              </span>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Low Stock Warning Banner if any items low in stock */}
@@ -267,6 +272,22 @@ export const AdminDashboardPage: React.FC = () => {
               <h3 className="text-sm font-bold text-[#F5F7FA]">Management Workspaces</h3>
               <div className="space-y-2.5">
                 <Link
+                  to="/admin/orders"
+                  className="flex items-center justify-between p-3 bg-[#171B20] border border-[#252A31] rounded-lg hover:border-sky-500/50 hover:bg-[#171B20]/80 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-sky-500/10 text-sky-400 rounded-md">
+                      <ShoppingBag className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-semibold text-[#F5F7FA] block">Manage Customer Orders</span>
+                      <span className="text-[10px] text-[#747B87]">Track customer orders, items and fulfillment</span>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-[#747B87] group-hover:text-sky-400 transition-colors" />
+                </Link>
+
+                <Link
                   to="/admin/products/new"
                   className="flex items-center justify-between p-3 bg-[#171B20] border border-[#252A31] rounded-lg hover:border-[#6366F1]/50 hover:bg-[#171B20]/80 transition-all group"
                 >
@@ -323,7 +344,12 @@ export const AdminDashboardPage: React.FC = () => {
                   <h3 className="text-sm font-bold text-[#F5F7FA]">Store Orders Activity</h3>
                   <p className="text-[11px] text-[#747B87]">Recent transactions from API</p>
                 </div>
-                <span className="text-xs font-semibold text-[#747B87]">{orders.length} total</span>
+                <Link
+                  to="/admin/orders"
+                  className="text-xs font-semibold text-[#6366F1] hover:text-[#818cf8] flex items-center gap-1"
+                >
+                  View All ({orders.length}) <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
 
               {ordersLoading ? (
@@ -333,13 +359,16 @@ export const AdminDashboardPage: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {orders.slice(0, 4).map((order) => (
-                    <div
+                    <Link
+                      to="/admin/orders"
                       key={order.id}
-                      className="p-3 bg-[#171B20] border border-[#252A31] rounded-lg flex items-center justify-between text-xs"
+                      className="p-3 bg-[#171B20] border border-[#252A31] rounded-lg flex items-center justify-between text-xs hover:border-[#3B424E] transition-all block group"
                     >
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-[#F5F7FA]">Order #{order.id}</span>
+                          <span className="font-bold text-[#F5F7FA] group-hover:text-[#6366F1] transition-colors">
+                            Order #{order.id}
+                          </span>
                           <span
                             className={`px-2 py-0.5 text-[10px] font-semibold uppercase rounded ${
                               order.status === 'paid' || order.status === 'delivered'
@@ -357,7 +386,7 @@ export const AdminDashboardPage: React.FC = () => {
                         </span>
                       </div>
                       <span className="font-bold text-[#F5F7FA]">{formatCurrency(order.total_amount)}</span>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}

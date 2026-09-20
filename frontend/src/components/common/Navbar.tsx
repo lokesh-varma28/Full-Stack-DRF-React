@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ShoppingBag,
   Heart,
@@ -19,8 +19,6 @@ import { useWishlist } from '../../hooks/useWishlist';
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const isProductsPage = /^\/products\/?$/i.test(location.pathname);
   const { user, isAuthenticated, isStaff, logout } = useAuth();
   const { itemCount: cartCount } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
@@ -40,9 +38,9 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 bg-[#0B0D10] border-b border-[#252A31] transition-all">
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4 sm:gap-6 lg:gap-8">
+        <div className="flex md:grid md:grid-cols-[1fr_auto_1fr] items-center justify-between h-16 gap-4 sm:gap-6 lg:gap-8">
           {/* Brand Logo & Core Nav Links */}
-          <div className="flex items-center gap-6 lg:gap-8 shrink-0">
+          <div className="flex items-center gap-6 lg:gap-8 shrink-0 justify-self-start">
             <Link
               to="/"
               className="flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 rounded-lg py-1"
@@ -70,24 +68,22 @@ export const Navbar: React.FC = () => {
             </nav>
           </div>
 
-          {/* Search Bar — Compact & Clean (Global search shortcut, omitted on /products where dedicated search is primary) */}
-          {!isProductsPage && (
-            <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-xs lg:max-w-sm relative">
-              <input
-                type="text"
-                name="search"
-                aria-label="Search products"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-4 py-1.5 text-xs bg-[#111418] text-[#F5F7FA] placeholder:text-[#747B87] border border-[#252A31] rounded-lg focus:outline-none focus:border-[#38404B] focus:ring-1 focus:ring-indigo-500/30 transition-all"
-              />
-              <Search className="w-3.5 h-3.5 text-[#747B87] absolute left-3 top-3 pointer-events-none" />
-            </form>
-          )}
+          {/* Search Bar — Mathematically Centered Grid Item */}
+          <form onSubmit={handleSearchSubmit} className="hidden md:flex justify-self-center w-[260px] lg:w-[360px] relative">
+            <input
+              type="text"
+              name="search"
+              aria-label="Search products"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-9 pl-9 pr-4 py-1.5 text-xs bg-[#111418] text-[#F5F7FA] placeholder:text-[#747B87] border border-[#252A31] rounded-lg focus:outline-none focus:border-[#38404B] focus:ring-1 focus:ring-indigo-500/30 transition-all"
+            />
+            <Search className="w-3.5 h-3.5 text-[#747B87] absolute left-3 top-3 pointer-events-none" />
+          </form>
 
           {/* Desktop Right Action Bar */}
-          <div className="hidden md:flex items-center gap-2.5 lg:gap-3">
+          <div className="hidden md:flex items-center gap-2.5 lg:gap-3 justify-self-end">
             {/* Wishlist Icon */}
             <Link
               to="/wishlist"
@@ -258,20 +254,18 @@ export const Navbar: React.FC = () => {
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-[#252A31] bg-[#111418] px-4 pt-3 pb-6 space-y-4 shadow-2xl">
-          {!isProductsPage && (
-            <form onSubmit={handleSearchSubmit} className="relative">
-              <input
-                type="text"
-                name="search"
-                aria-label="Search products"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 text-sm bg-[#171B20] text-[#F5F7FA] border border-[#252A31] rounded-lg focus:border-[#3B424E] focus:outline-none"
-              />
-              <Search className="w-4 h-4 text-[#747B87] absolute left-3 top-3.5" />
-            </form>
-          )}
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <input
+              type="text"
+              name="search"
+              aria-label="Search products"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 text-sm bg-[#171B20] text-[#F5F7FA] border border-[#252A31] rounded-lg focus:border-[#3B424E] focus:outline-none"
+            />
+            <Search className="w-4 h-4 text-[#747B87] absolute left-3 top-3.5" />
+          </form>
 
           <div className="space-y-1 pt-1">
             <Link

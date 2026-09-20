@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, PlusCircle, Layers, ArrowLeft, Shield } from 'lucide-react';
+import { LayoutDashboard, Package, PlusCircle, Layers, ShoppingBag, ArrowLeft, Shield } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface AdminLayoutProps {
@@ -13,6 +13,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   const navItems = [
     { label: 'Overview', path: '/admin', icon: LayoutDashboard },
+    { label: 'Orders', path: '/admin/orders', icon: ShoppingBag },
     { label: 'Products', path: '/admin/products', icon: Package },
     { label: 'Add Product', path: '/admin/products/new', icon: PlusCircle },
     { label: 'Categories', path: '/admin/categories', icon: Layers },

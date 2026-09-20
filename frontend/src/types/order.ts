@@ -61,12 +61,38 @@ export interface CheckoutResponseData {
   amount_rupees: string;
   currency: string;
   razorpay_key_id: string;
-  order?: any;
-  razorpay?: any;
+  order?: Order | null;
+  razorpay?: Record<string, unknown> | null;
 }
 
 export interface VerifyPaymentRequest {
   razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
+}
+
+export interface AdminCustomer {
+  id: number;
+  username: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+export interface AdminOrder extends Order {
+  user?: AdminCustomer;
+  customer?: AdminCustomer;
+  items_count?: number;
+  updated_at?: string;
+}
+
+export interface AdminOrderFilterParams {
+  search?: string;
+  status?: OrderStatus | '';
+  payment_status?: string;
+  ordering?: string;
+}
+
+export interface UpdateOrderStatusRequest {
+  status: OrderStatus;
 }

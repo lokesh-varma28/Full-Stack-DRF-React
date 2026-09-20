@@ -3,8 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, CreditCard, PackageCheck, AlertCircle, XCircle } from 'lucide-react';
 import { useOrder, useOrders } from '../hooks/useOrders';
 import { OrderStatusBadge } from '../components/orders/OrderStatusBadge';
+import { OrderItemThumbnail } from '../components/orders/OrderItemThumbnail';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import { PRODUCT_FALLBACK_IMAGE } from '../utils/constants';
 import { toast } from '../stores/useToastStore';
 
 export const OrderDetailPage: React.FC = () => {
@@ -92,24 +92,10 @@ export const OrderDetailPage: React.FC = () => {
             <div className="space-y-4 pt-2">
               {order.items?.map((item) => {
                 const product = item.product;
-                const isInvalidImage = !product?.image || product.image.includes('unsplash');
-                const imageUrl = (isInvalidImage ? PRODUCT_FALLBACK_IMAGE : product!.image) || PRODUCT_FALLBACK_IMAGE;
 
                 return (
                   <div key={item.id} className="flex items-center gap-4 py-3 border-b border-[#252A31] last:border-0">
-                    <div className="w-16 h-16 bg-[#171B20] border border-[#252A31] rounded-lg overflow-hidden shrink-0 p-1 flex items-center justify-center">
-                      <img
-                        src={imageUrl}
-                        alt={product?.name ? product.name : 'Product'}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          if (target.src !== PRODUCT_FALLBACK_IMAGE) {
-                            target.src = PRODUCT_FALLBACK_IMAGE;
-                          }
-                        }}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
+                    <OrderItemThumbnail product={product} className="w-16 h-16" />
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-[#F5F7FA] text-sm truncate">
                         {product ? product.name : 'Product'}
